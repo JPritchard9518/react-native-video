@@ -242,7 +242,7 @@ static int const RCTVideoUnset = -1;
 
 - (void)applicationWillEnterForeground:(NSNotification *)notification
 {
-  [self applyModifiers];
+  // [self applyModifiers];
   if (_playInBackground) {
     [_playerLayer setPlayer:_player];
     [_playerViewController setPlayer:_player];
