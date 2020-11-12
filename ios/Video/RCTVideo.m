@@ -14,6 +14,7 @@ static NSString *const playbackRate = @"rate";
 static NSString *const timedMetadata = @"timedMetadata";
 static NSString *const externalPlaybackActive = @"externalPlaybackActive";
 static NSString *const mutedKeyPath = @"muted";
+static NSString *const timeControlStatusKeyPath = @"timeControlStatus";
 
 static int const RCTVideoUnset = -1;
 
@@ -46,6 +47,7 @@ static int const RCTVideoUnset = -1;
   BOOL _playbackRateObserverRegistered;
   BOOL _isExternalPlaybackActiveObserverRegistered;
   BOOL _mutedObserverRegistered;
+  BOOL _timeControlStatusObserverRegistered;
   BOOL _videoLoadStarted;
   
   bool _pendingSeek;
@@ -103,6 +105,7 @@ static int const RCTVideoUnset = -1;
     _playbackRateObserverRegistered = NO;
     _isExternalPlaybackActiveObserverRegistered = NO;
     _mutedObserverRegistered = NO;
+    _timeControlStatusObserverRegistered = YES;
     
     _playbackStalled = NO;
     _rate = 1.0;
@@ -224,6 +227,7 @@ static int const RCTVideoUnset = -1;
   [_player removeObserver:self forKeyPath:playbackRate context:nil];
   [_player removeObserver:self forKeyPath:externalPlaybackActive context: nil];
   [_player removeObserver:self forKeyPath:mutedKeyPath context: nil];
+  [_player removeObserver:self forKeyPath:timeControlStatusKeyPath context: nil];
 }
 
 #pragma mark - App lifecycle handlers
@@ -390,6 +394,10 @@ static int const RCTVideoUnset = -1;
         [self->_player removeObserver:self forKeyPath:mutedKeyPath context:nil];
         self->_mutedObserverRegistered = NO;
       }
+        if (self->_timeControlStatusObserverRegistered) {
+        [self->_player removeObserver:self forKeyPath:timeControlStatusKeyPath context:nil];
+        self->_timeControlStatusObserverRegistered = NO;
+      }
       
       self->_player = [AVPlayer playerWithPlayerItem:self->_playerItem];
       self->_player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
@@ -402,6 +410,9 @@ static int const RCTVideoUnset = -1;
 
       [self->_player addObserver:self forKeyPath:mutedKeyPath options:0 context:nil];
       self->_mutedObserverRegistered = YES;
+        
+      [self->_player addObserver:self forKeyPath:timeControlStatusKeyPath options:0 context:nil];
+      self->_timeControlStatusObserverRegistered = YES;
       
       [self addPlayerTimeObserver];
       if (@available(iOS 10.0, *)) {
@@ -750,6 +761,12 @@ static int const RCTVideoUnset = -1;
     }else if([keyPath isEqualToString:mutedKeyPath]) {
         if(self.onMuteChanged){
             self.onMuteChanged(@{@"isMuted": [NSNumber numberWithBool:_player.isMuted],
+                                 @"target": self.reactTag});
+        }
+    }else if([keyPath isEqualToString:timeControlStatusKeyPath]){
+        if(self.onPlayPauseChanged){
+            BOOL isPaused = _player.timeControlStatus == 0;// AVPlayerTimeControlStatusPaused;
+            self.onPlayPauseChanged(@{@"isPaused": [NSNumber numberWithBool:isPaused],
                                  @"target": self.reactTag});
         }
     }
@@ -1625,6 +1642,10 @@ static int const RCTVideoUnset = -1;
   if (_mutedObserverRegistered) {
     [_player removeObserver:self forKeyPath:mutedKeyPath context:nil];
       _mutedObserverRegistered = NO;
+  }
+    if (_timeControlStatusObserverRegistered) {
+    [_player removeObserver:self forKeyPath:timeControlStatusKeyPath context:nil];
+        _timeControlStatusObserverRegistered = NO;
   }
   _player = nil;
   

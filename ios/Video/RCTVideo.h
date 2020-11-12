@@ -30,6 +30,7 @@
 @property (nonatomic, copy) RCTDirectEventBlock onVideoSeek;
 @property (nonatomic, copy) RCTDirectEventBlock onVideoEnd;
 @property (nonatomic, copy) RCTDirectEventBlock onMuteChanged;
+@property (nonatomic, copy) RCTDirectEventBlock onPlayPauseChanged;
 @property (nonatomic, copy) RCTDirectEventBlock onTimedMetadata;
 @property (nonatomic, copy) RCTDirectEventBlock onVideoAudioBecomingNoisy;
 @property (nonatomic, copy) RCTDirectEventBlock onVideoFullscreenPlayerWillPresent;
